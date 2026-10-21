@@ -7,6 +7,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -16,6 +18,10 @@ public class MotionService extends Service implements SensorEventListener {
 
     private SensorManager sensorManager;
     private Sensor accelerometer;
+
+    private HandlerThread sensorThread;
+    private Handler sensorHandler;
+
 
 
     @Override
@@ -32,11 +38,26 @@ public class MotionService extends Service implements SensorEventListener {
 
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); //get the accelerometer sensor
 
+        sensorThread = new HandlerThread("SensorThread");
+        sensorThread.start(); //start a separate thread
+
+        sensorHandler = new Handler(sensorThread.getLooper());
+
     }
 
     @Override //called each time the service is started
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("MotionService", "Service Started");
+
+        if (accelerometer != null) { //if the accelerometer is available
+            sensorManager.registerListener(
+                    this,
+                    accelerometer,
+                    SensorManager.SENSOR_DELAY_NORMAL,  //delay between readings
+                    sensorHandler
+            );
+        }
+
         return START_STICKY; //stay running/ attempt
     }
 
