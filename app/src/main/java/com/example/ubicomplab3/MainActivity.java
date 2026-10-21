@@ -1,5 +1,6 @@
 package com.example.ubicomplab3;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
@@ -21,8 +22,24 @@ public class MainActivity extends AppCompatActivity {
         Button btnStart = findViewById(R.id.btnStart);
 
         btnStart.setOnClickListener(v -> {
+
+            Intent intent = new Intent(this, MotionService.class);
+            startService(intent); //start the service
+
             Toast.makeText(this, "Monitoring Started", Toast.LENGTH_SHORT).show();
                 });
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
