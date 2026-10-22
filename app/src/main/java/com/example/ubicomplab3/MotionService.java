@@ -18,11 +18,12 @@ public class MotionService extends Service implements SensorEventListener {
 
     private SensorManager sensorManager;
     private Sensor accelerometer;
-
     private HandlerThread sensorThread;
     private Handler sensorHandler;
-
-
+    private float lastX;
+    private float lastY;
+    private float lastZ;
+    private boolean firstReading = true; //tells the app if this is the first reading
 
     @Override
     public IBinder onBind(Intent intent) { //must include onBind() because Java requires it, but it returns null because it's not being used
@@ -69,6 +70,31 @@ public class MotionService extends Service implements SensorEventListener {
 
     @Override //called when the sensor sends new readings (X, Y, Z)
     public void onSensorChanged(SensorEvent event) {
+        float x = event.values[0];
+        float y = event.values[1];
+        float z = event.values[2];
+
+        Log.d("MotionService", "X: " + x + " Y: " + y + " Z: " + z);
+        if (firstReading) { //checks if this is the first reading
+            lastX = x;
+            lastY = y;
+            lastZ = z;
+
+            firstReading = false;
+            return;
+        }
+        float deltaX = Math.abs(x - lastX);
+        float deltaY = Math.abs(y - lastY);
+        float deltaZ = Math.abs(z - lastZ);
+
+        if (deltaX > 2 || deltaY > 2 || deltaZ > 2) {
+            Log.d("MotionService", "Movement Detected!");
+        }
+
+        //update the last readings
+        lastX = x;
+        lastY = y;
+        lastZ = z;
 
     }
 
