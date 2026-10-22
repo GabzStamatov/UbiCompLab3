@@ -29,20 +29,6 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Monitoring Started", Toast.LENGTH_SHORT).show();
                 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-=
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
