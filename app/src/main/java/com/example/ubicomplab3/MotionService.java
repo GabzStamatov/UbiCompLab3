@@ -3,6 +3,7 @@ package com.example.ubicomplab3;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -139,11 +140,27 @@ public class MotionService extends Service implements SensorEventListener {
                 Locale.getDefault()
         ).format(new Date());
 
+        //adding an explicit intent to specify the activity android needs to open
+        Intent intent = new Intent(this, MotionDetailsActivity.class);
+
+        intent.putExtra("motionTime", time);
+
+        //perform it later
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+
+
         Notification.Builder builder =
                 new Notification.Builder(this, "motion_channel")
                         .setSmallIcon(R.mipmap.ic_launcher)
                         .setContentTitle("Movement Detected!")
                         .setContentText("Phone moved at " + time)
+                        .setContentIntent(pendingIntent) //connect pendingIntent to notification
                         .setAutoCancel(true);
 
         Notification notification = builder.build();
