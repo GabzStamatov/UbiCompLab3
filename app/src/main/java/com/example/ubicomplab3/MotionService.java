@@ -1,5 +1,8 @@
 package com.example.ubicomplab3;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -7,10 +10,15 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.util.Log;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 
 //create the service that the button will use
@@ -44,6 +52,21 @@ public class MotionService extends Service implements SensorEventListener {
 
         sensorHandler = new Handler(sensorThread.getLooper());
 
+
+        //create notification channel
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+            NotificationChannel channel = new NotificationChannel(
+                    "motion_channel",
+                    "Motion Alerts",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+
+            NotificationManager manager =
+                    getSystemService(NotificationManager.class);
+
+            manager.createNotificationChannel(channel);
+        }
     }
 
     @Override //called each time the service is started
@@ -65,6 +88,11 @@ public class MotionService extends Service implements SensorEventListener {
     @Override //terminate
     public void onDestroy() {
         super.onDestroy();
+
+        sensorManager.unregisterListener(this);
+
+        sensorThread.quitSafely();
+
         Log.d("MotionService", "Service Destroyed");
     }
 
@@ -74,7 +102,7 @@ public class MotionService extends Service implements SensorEventListener {
         float y = event.values[1];
         float z = event.values[2];
 
-        Log.d("MotionService", "X: " + x + " Y: " + y + " Z: " + z);
+        //Log.d("MotionService", "X: " + x + " Y: " + y + " Z: " + z);
         if (firstReading) { //checks if this is the first reading
             lastX = x;
             lastY = y;
@@ -89,6 +117,7 @@ public class MotionService extends Service implements SensorEventListener {
 
         if (deltaX > 2 || deltaY > 2 || deltaZ > 2) {
             Log.d("MotionService", "Movement Detected!");
+            showNotification();
         }
 
         //update the last readings
@@ -102,5 +131,29 @@ public class MotionService extends Service implements SensorEventListener {
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
+    //builds and posts the notification
+    private void showNotification() {
+
+        String time = new SimpleDateFormat(
+                "HH:mm:ss",
+                Locale.getDefault()
+        ).format(new Date());
+
+        Notification.Builder builder =
+                new Notification.Builder(this, "motion_channel")
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentTitle("Movement Detected!")
+                        .setContentText("Phone moved at " + time)
+                        .setAutoCancel(true);
+
+        Notification notification = builder.build();
+
+        NotificationManager manager =
+                getSystemService(NotificationManager.class);
+
+        manager.notify(1, notification); //show the notification
+
+    }
+
 
 }
